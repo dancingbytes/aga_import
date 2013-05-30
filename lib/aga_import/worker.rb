@@ -44,17 +44,7 @@ module AgaImport
 
         begin
 
-          # если содержит только изменения, то не делаем пометку на удаление
-          # unless @partial
-          #   cats = Catalog.where(:_id.nin => @catalogs_not_deleted, :dep_code => @root_catalog.dep_code)
-          #   items = Item.where(:_id.nin => @items_not_deleted, :department => @root_catalog.dep_code)
-
-          #   log "Помечено каталогов на удаление: #{cats.count}"
-          #   log "Помечено товаров на удаление: #{items.count}"
-
-          #   cats.update_all(:deleted => true)
-          #   items.update_all(:deleted => true)
-          # end
+          # тут пометить на удаление
 
         end
 

@@ -47,12 +47,11 @@ module AgaImport
       files = ::Dir.glob( ::File.join(::AgaImport::import_dir, "**", "*.xml") )
       return unless files && files.size > 0
 
-      p files
       @has_files = true
 
-      # Catalog.rebuild! if Catalog.where(:pos.exists => true).size > 7
       
       start = Time.now.to_f
+
       # Сортируем по дате последнего доступа по-возрастанию
       files.sort{ |a, b| ::File.new(a).mtime <=> ::File.new(b).atime }.each do |xml_file|
         ::AgaImport::Worker.new(xml_file, self).parse
