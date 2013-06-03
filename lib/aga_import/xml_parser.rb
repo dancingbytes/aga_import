@@ -96,6 +96,7 @@ module AgaImport
         when 'Предложение','Товар'  then stop_parse_item
         when 'Цена'                 then stop_parse_item_price
         when 'Описание'             then grub_item_description
+        when 'Картинка'             then grub_image_for_item
 
       end # case
 
@@ -173,7 +174,8 @@ module AgaImport
         attrs['in_pack'].try(:to_i) || 1,
         attrs['catalog'],
         attrs['vendor'],
-        attrs['description']
+        attrs['description'],
+        attrs['image']
       )
     end
     

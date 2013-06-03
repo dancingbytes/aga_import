@@ -90,10 +90,13 @@ module AgaImport
       in_pack,
       catalog,
       vendor,
-      description
+      description,
+      imagepath
       )
 
       catalog = ItemGroup.where(:id_1c => catalog).first
+
+
 
       if ( item = ::Item.where(:id_1c => id).first )
         item.name                     = name.xml_unescape
@@ -108,6 +111,12 @@ module AgaImport
         item.item_group_id            = catalog.id      unless catalog.blank?
         item.vendor                   = vendor          unless vendor.blank?
         item.description              = description     unless description.blank?
+
+        uri = File.join(File.expand_path('..', @file), imagepath)
+        if File.exists?(uri)
+          item.images.destroy_all
+          item.images = [uri]
+        end
 
         if item.save
           @ins += 1
@@ -129,6 +138,11 @@ module AgaImport
         item.item_group_id            = catalog.id
         item.vendor                   = vendor
         item.description              = description
+
+        uri = File.join(File.expand_path('..', @file), imagepath)
+        if File.exists?(uri)
+          item.images = [uri]
+        end
 
         if item.save
           @ins += 1
