@@ -54,7 +54,9 @@ module AgaImport
 
       # Сортируем по дате последнего доступа по-возрастанию
       files.sort{ |a, b| ::File.new(a).mtime <=> ::File.new(b).atime }.each do |xml_file|
-        ::AgaImport::Worker.new(xml_file, self).parse
+        ItemGroup.transaction do
+          ::AgaImport::Worker.new(xml_file, self).parse
+        end
       end # each
 
       log "Всего элементов обновлено: #{@upd}"
@@ -74,12 +76,10 @@ module AgaImport
 
       i = 0
       files.each do |zip|
-
         i+= 1
         begin
 
           ::Zip::ZipFile.open(zip) { |zip_file|
-
             zip_file.each { |f|
 
               # Создаем дополнительную вложенность т.к. 1С 8 выгружает всегда одни и теже
@@ -96,7 +96,8 @@ module AgaImport
 
           ::FileUtils.rm_rf(zip)
 
-        rescue
+        rescue => e
+          log e.backtrace.join("\n")
         end
 
       end # Dir.glob

@@ -7,7 +7,6 @@ module AgaImport
     def initialize(saver)
 
       @saver  = saver
-      @price_types = {}
       @item   = {}
       @level  = 0
       @tags   = {}
@@ -59,10 +58,6 @@ module AgaImport
         when 'Ид'             then
           case parent_tag
             when 'Классификатор'  then
-              # str - внутренний идентификатор в 1С
-              
-              #@saver.save_doc()
-              
               @validation_stage = 1
             when 'Группа'         then
               grub_catalog('id')
@@ -70,6 +65,7 @@ module AgaImport
           @price_id  = @str  if for_price?
           grub_item('code_1c')
           grub_catalog_for_item
+          grub_image_for_item
         when 'Наименование'   then
           grub_catalog('name')
           @price_name = @str if for_price?
@@ -77,16 +73,11 @@ module AgaImport
         when 'ИдКаталога'     then
           if parent_tag == 'ПакетПредложений'
             @validation_stage = 2
-            
-            # @saver.save_doc()
-
           end
         when 'Отдел'          then grub_item('department')
         when 'Артикул'        then grub_item('marking_of_goods')
         when 'АртикулПроизводителя' then 
           grub_item('vendor_artikul')
-        when 'ДополнительноеОписаниеНоменклатуры'
-          grub_item('additional_info')
         when 'Производитель'  then grub_item('vendor')
         when 'Количество'     then grub_item('available')
 
@@ -104,6 +95,7 @@ module AgaImport
         when 'ТипЦены'              then stop_parse_price
         when 'Предложение','Товар'  then stop_parse_item
         when 'Цена'                 then stop_parse_item_price
+        when 'Описание'             then grub_item_description
 
       end # case
 
@@ -158,6 +150,8 @@ module AgaImport
       @item[attr_name] = @str.xml_unescape if group_for_item?
     end
 
+
+
     def save_catalog(attrs)
       @saver.save_catalog(
         attrs['id'],
@@ -168,17 +162,18 @@ module AgaImport
 
     def save_item(attrs)
       @saver.save_item(
-        attrs['id'] || attrs['code_1c'],
+        attrs['code_1c'],
         attrs['name'],
-        attrs['artikul'] || attrs['marking_of_goods'],
+        attrs['marking_of_goods'],
         attrs['vendor_artikul'],
-        (attrs['price'].try(:to_i) || attrs['supplier_wholesale_price']),
-        (attrs['count'].try(:to_i) || attrs['available'].try(:to_i)),
+        attrs['supplier_purchasing_price'].try(:to_f),
+        attrs['supplier_wholesale_price'].try(:to_f),
+        attrs['available'].try(:to_i),
         attrs['unit'],
         attrs['in_pack'].try(:to_i) || 1,
         attrs['catalog'],
         attrs['vendor'],
-        attrs['additional_info'] || nil
+        attrs['description']
       )
     end
     
@@ -225,9 +220,9 @@ module AgaImport
 
     def stop_parse_price
 
-      if !@price_name.blank? && !@price_id.blank?
-        @price_types[@price_id] = @price_name
-      end
+      # if !@price_name.blank? && !@price_id.blank?
+      #   @price_types[@price_id] = @price_name
+      # end
 
       @price_name   = nil
       @price_id     = nil
@@ -258,12 +253,12 @@ module AgaImport
 
       if !@item_price.blank? && !@item_price_id.blank?
 
-        case @price_types[@item_price_id]
+        case @item_price_id
 
-          when "Опт" then
+          when "926c45bf-1f44-11de-8200-001a4d377c6e" then
             @item["supplier_wholesale_price"] = @item_price
 
-          when "Закупочная" then
+          when "c8de0f96-191b-11de-bee1-00167682119b" then
             @item["supplier_purchasing_price"] = @item_price
 
         end # case
@@ -277,6 +272,14 @@ module AgaImport
 
     end # stop_parse_item_price
 
+    def grub_item_description(attr_name = 'description')
+      @item[attr_name] = @str.xml_unescape
+    end
+
+    def grub_image_for_item(attr_name = 'image')
+      @item[attr_name] = @str.xml_unescape
+    end
+
     def validate_1c_8(attrs)
 
       if attrs.empty?
@@ -285,11 +288,6 @@ module AgaImport
 
       if attrs['code_1c'].blank?
         @saver.log "[Errors 1C 8] Не найден идентификатор у товара: #{attrs['marking_of_goods']}"
-        return false
-      end
-
-      if attrs['department'].blank?
-        @saver.log "[Errors 1C 8] Не найден отдел у товара: #{attrs['marking_of_goods']}"
         return false
       end
 
@@ -306,6 +304,11 @@ module AgaImport
       if @validation_stage == 2
         if attrs['supplier_wholesale_price'].blank?
           @saver.log "[Errors 1C 8] Не найдена оптовая цена у товара: #{attrs['marking_of_goods']} - #{attrs['name']}"
+          return false
+        end
+
+        if attrs['supplier_purchasing_price'].blank?
+          @saver.log "[Errors 1C 8] Не найдена закупочная цена у товара: #{attrs['marking_of_goods']} - #{attrs['name']}"
           return false
         end
 
