@@ -139,10 +139,10 @@ module AgaImport
         item.vendor                   = vendor
         item.description              = description
 
-        uri = File.join(File.expand_path('..', @file), imagepath)
-        if File.exists?(uri)
-          item.images = [uri]
-        end
+        # uri = File.join(File.expand_path('..', @file), imagepath)
+        # if File.exists?(uri)
+        #   item.images = [uri]
+        # end
 
         if item.save
           @ins += 1
