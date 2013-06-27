@@ -64,7 +64,11 @@ module AgaImport
       parent
       )
 
-      group = ItemGroup.find_or_initialize_by(:id_1c => id) do | group |
+      parent_node = ItemGroup.where(id_1c: parent).first
+
+      log parent_node.inspect
+
+      group = ItemGroup.find_or_initialize_by(id_1c: id) do | group |
         group.id_1c = id
         group.name  = name.xml_unescape
       end
@@ -74,6 +78,17 @@ module AgaImport
         true
       else
         false
+      end
+
+      @catalogs_not_deleted << group.id
+
+      begin
+        if parent_node
+          parent_node.add_child ( group ) unless parent_node.children.where(id: group.id).first
+        end
+      rescue
+        log "Exception: #{e.message}"
+        log "Can't add children node"
       end
 
     end # save_doc
@@ -95,8 +110,6 @@ module AgaImport
       )
 
       catalog = ItemGroup.where(:id_1c => catalog).first
-
-
 
       if ( item = ::Item.where(:id_1c => id).first )
         item.name                     = name.xml_unescape
