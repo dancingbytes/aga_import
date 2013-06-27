@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
 
   s.licenses          = ['BSD']
 
-  s.add_dependency 'rails', '~> 4.0.0.rc2'
+  s.add_dependency 'rails', '~> 4.0.0'
   s.add_dependency 'nokogiri', '~> 1.5.0'
   s.add_dependency 'rubyzip'
   s.add_dependency 'logger'
