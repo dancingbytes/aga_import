@@ -73,9 +73,18 @@ module AgaImport
       parent
       )
 
+      parents = [
+        'cefa7837-191b-11de-bee1-00167682119b',
+        'c8de0ff9-191b-11de-bee1-00167682119b',
+        'c8de1030-191b-11de-bee1-00167682119b',
+        '35cf7082-867c-11e0-845c-001a4d377c6e',
+        'c8de0fb6-191b-11de-bee1-00167682119b'
+        ].freeze
       parent_node = ItemGroup.where(id_1c: parent).first
 
-      log parent_node.inspect
+      if parents.include?(id)
+        log "id: #{id} ; name: #{name} ; parent: #{parent} "
+      end
 
       group = ItemGroup.find_or_initialize_by(id_1c: id) do | group |
         group.id_1c = id
@@ -93,7 +102,8 @@ module AgaImport
 
       begin
         if parent_node
-          parent_node.add_child ( group ) unless parent_node.children.where(id: group.id).first
+          # parent_node.add_child ( group ) unless parent_node.children.where(id: group.id).first
+          parent_node.children << group
         end
       rescue
         log "Exception: #{e.message}"
@@ -135,7 +145,8 @@ module AgaImport
         item.description              = description     unless description.blank?
 
         uri = File.join(File.expand_path('..', @file), imagepath)
-        if File.exists?(uri)
+        if File.exists?(uri) && !File.directory?(uri)
+          log uri
           item.images.destroy_all
           item.images = [uri]
         end
@@ -163,7 +174,9 @@ module AgaImport
         item.description              = description
 
         uri = File.join(File.expand_path('..', @file), imagepath)
-        if File.exists?(uri)
+        if File.exists?(uri) && !File.directory?(uri)
+          log uri
+          item.images.destroy_all
           item.images = [uri]
         end
 

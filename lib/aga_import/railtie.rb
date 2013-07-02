@@ -8,12 +8,13 @@ module AgaImport
 
       Imp( ::AgaImport::proc_name, ::AgaImport::daemon_log ) do
 
-        t = ::Listen.to(::AgaImport::import_dir, :filter => /\.zip$/, :ignore => [/\.jpg$/, /\.png$/, /\.jpeg$/], :force_polling => true, :latency => 1.0 ) do |modified, added, removed|
-          unless added.empty?
+        # t = ::Listen.to(::AgaImport::import_dir, :filter => /\.zip$/, :ignore => [/\.jpg$/, /\.png$/, /\.jpeg$/], :force_polling => true, :latency => 1.0 ) do |modified, added, removed|
+          # unless added.empty?
             ::AgaImport::Manager.run
-          end
-        end
-        t.join
+            sleep ::AgaImport::wait
+          # end
+        # end
+        # t.join
       end # Imp
 
     end # initializer

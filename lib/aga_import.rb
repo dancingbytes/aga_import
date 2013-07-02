@@ -4,7 +4,7 @@ require 'zip/zip'
 require 'fileutils'
 require 'yaml'
 require 'nokogiri'
-require 'listen'
+# require 'listen'
 
 module AgaImport
 
@@ -61,6 +61,13 @@ module AgaImport
 
   end # log_dir
 
+  def wait(v = nil)
+
+    @wait = v.abs if v.is_a?(::Fixnum)
+    @wait || 5 * 60
+
+  end # wait
+  
 end # AgaImport
 
 require 'aga_import/version'
