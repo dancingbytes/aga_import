@@ -45,7 +45,16 @@ module AgaImport
         begin
 
           # тут пометить на удаление
+          unless @partial
+            cats = ItemGroup.where.not(id: @catalogs_not_deleted)
+            items = Item.where.not(id: @items_not_deleted)
 
+            log "Помечено каталогов на удаление: #{cats.count}"
+            log "Помечено товаров на удаление: #{items.count}"
+
+            cats.update_all(:deleted => true)
+            items.update_all(:deleted => true)
+          end
         end
 
         log "Затрачено времени на 'удаление': #{ '%0.3f' % (Time.now.to_f - start) } секунд."
@@ -133,6 +142,7 @@ module AgaImport
 
         if item.save
           @ins += 1
+          @items_not_deleted << item.id
           true
         else
           false
@@ -152,19 +162,22 @@ module AgaImport
         item.vendor                   = vendor
         item.description              = description
 
-        # uri = File.join(File.expand_path('..', @file), imagepath)
-        # if File.exists?(uri)
-        #   item.images = [uri]
-        # end
+        uri = File.join(File.expand_path('..', @file), imagepath)
+        if File.exists?(uri)
+          item.images = [uri]
+        end
 
         if item.save
           @ins += 1
+          @items_not_deleted << item.id
           true
         else
           false
         end
+
       end
 
+      
     end # save_item
 
     def log(msg)
