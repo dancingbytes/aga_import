@@ -72,19 +72,7 @@ module AgaImport
       name,
       parent
       )
-
-      parents = [
-        'cefa7837-191b-11de-bee1-00167682119b',
-        'c8de0ff9-191b-11de-bee1-00167682119b',
-        'c8de1030-191b-11de-bee1-00167682119b',
-        '35cf7082-867c-11e0-845c-001a4d377c6e',
-        'c8de0fb6-191b-11de-bee1-00167682119b'
-        ].freeze
       parent_node = ItemGroup.where(id_1c: parent).first
-
-      if parents.include?(id)
-        log "id: #{id} ; name: #{name} ; parent: #{parent} "
-      end
 
       group = ItemGroup.find_or_initialize_by(id_1c: id) do | group |
         group.id_1c = id
@@ -93,12 +81,11 @@ module AgaImport
 
       if group.save
         @cins += 1
+        @catalogs_not_deleted << group.id# if group
         true
       else
         false
       end
-
-      @catalogs_not_deleted << group.id
 
       begin
         if parent_node
@@ -146,7 +133,6 @@ module AgaImport
 
         uri = File.join(File.expand_path('..', @file), imagepath)
         if File.exists?(uri) && !File.directory?(uri)
-          log uri
           item.images.destroy_all
           item.images = [uri]
         end
@@ -175,7 +161,6 @@ module AgaImport
 
         uri = File.join(File.expand_path('..', @file), imagepath)
         if File.exists?(uri) && !File.directory?(uri)
-          log uri
           item.images.destroy_all
           item.images = [uri]
         end

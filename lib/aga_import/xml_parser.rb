@@ -103,7 +103,7 @@ module AgaImport
     end # end_element
 
     def characters(str)
-      @str << str.squish unless str.blank?
+      @str << str unless str.blank?
     end # characters
 
     def error(string)
